@@ -1,0 +1,8 @@
+[package]
+name = "zj_leap"
+version = "0.1.0"
+authors = ["Simon Korzunovs"]
+edition = "2018"
+
+[dependencies]
+zellij-tile = "0.41.2"

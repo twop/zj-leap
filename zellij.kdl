@@ -1,0 +1,17 @@
+layout {
+    cwd "."
+    pane size=1 borderless=true {
+        plugin location="zellij:tab-bar"
+    }
+    pane split_direction="vertical" {
+        pane split_direction="horizontal" {
+                pane command="bash" name="COMPILE AND RELOAD PLUGIN" {
+                    args "-c" "bacon"
+                }
+        }
+    }
+
+    pane size=2 borderless=true {
+        plugin location="zellij:status-bar"
+    }
+}
