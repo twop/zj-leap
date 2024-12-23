@@ -18,7 +18,7 @@ background = false
 
 [jobs.zellij]
 # cargo build && zellij action start-or-reload-plugin file:target/wasm32-wasi/debug/jump_room.wasm
-command = ["zellij", "action", "start-or-reload-plugin", "file:target/wasm32-wasi/debug/jump_room.wasm"]
+command = ["zellij", "action", "start-or-reload-plugin", "file:target/wasm32-wasi/debug/zj_leap.wasm"]
 need_stdout = true
 background = false
 

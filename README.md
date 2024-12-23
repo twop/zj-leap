@@ -25,3 +25,11 @@ It can also be used if you prefer developing outside of the terminal - in this c
 1. Build the project: `cargo build`
 2. Load it inside a running Zellij session: `zellij action start-or-reload-plugin file:target/wasm32-wasi/debug/rust-plugin-example.wasm`
 3. Repeat on changes (perhaps with a `watchexec` or similar command to run on fs changes).
+
+
+## Inspired by:
+
+- https://vimium.github.io/
+  - keyboard navigation for your browser
+- https://github.com/rvcas/room
+  - search navigation plugin for tabs

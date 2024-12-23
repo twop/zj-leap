@@ -438,11 +438,15 @@ struct TextPart {
 
 struct TextBuilder {
     parts: Vec<TextPart>,
+    is_opaque: bool,
 }
 
 impl TextBuilder {
     fn start() -> Self {
-        Self { parts: vec![] }
+        Self {
+            parts: vec![],
+            is_opaque: false,
+        }
     }
 
     fn text(mut self, text: impl Into<String>) -> Self {
@@ -476,13 +480,24 @@ impl TextBuilder {
         self
     }
 
+    fn opaque(mut self) -> Self {
+        self.is_opaque = true;
+        self
+    }
+
+    fn add(mut self, other: TextBuilder) -> Self {
+        self.parts.extend(other.parts);
+        self
+    }
+
     fn build(self) -> Text {
         let mut text = String::new();
         for part in &self.parts {
             text.push_str(&part.text);
         }
 
-        self.parts
+        let res = self
+            .parts
             .into_iter()
             .fold((Text::new(text), 0), |(text_so_far, pos), part| {
                 let end = pos + part.text.chars().count();
@@ -491,7 +506,12 @@ impl TextBuilder {
                     end,
                 )
             })
-            .0
+            .0;
+
+        match self.is_opaque {
+            true => res.opaque(),
+            false => res,
+        }
     }
 }
 
@@ -599,15 +619,26 @@ impl ZellijPlugin for State {
                 for tab in active.tabs.iter() {
                     let start_row = row_pos;
 
-                    let tab_text = format_progress(&tab.sequence, &active.combo)
-                        .colored(" - ", R::Accent)
+                    let tab_text = TextBuilder::start()
+                        .add(format_progress(&tab.sequence, &active.combo))
+                        .colored(
+                            match tab.current {
+                                true => " * ",
+                                false => " - ",
+                            },
+                            R::Accent,
+                        )
                         .colored(
                             &tab.name,
                             match tab.current {
                                 true => R::Primary,
-                                false => R::Accent,
+                                false => R::Primary,
                             },
-                        );
+                        )
+                        .space();
+                    // .colored("[", R::Accent)
+                    // .add(format_progress(&tab.sequence, &active.combo));
+                    // .colored("]", R::Accent);
 
                     let tab_text = match (active.hide_panes, tab.selectable_panes.len()) {
                         (true, _) => tab_text
@@ -621,21 +652,32 @@ impl ZellijPlugin for State {
                         _ => tab_text,
                     };
 
-                    print_text_with_coordinates(tab_text.build(), 1, row_pos, None, None);
+                    print_text_with_coordinates(
+                        if tab.current {
+                            tab_text.opaque().build()
+                        } else {
+                            tab_text.build()
+                        },
+                        0,
+                        row_pos,
+                        None,
+                        None,
+                    );
 
                     row_pos += 1;
 
                     if tab.selectable_panes.len() >= 2 {
                         for pane in tab.selectable_panes.iter() {
                             let focused = pane.is_focused;
-                            let pane_text = format_progress(&pane.sequence, &active.combo)
+                            let pane_text = TextBuilder::start()
+                                .add(format_progress(&pane.sequence, &active.combo))
                                 .colored(
                                     match (
                                         focused,
                                         pane.is_floating,
                                         tab.are_floating_panes_visible,
                                     ) {
-                                        (true, true, true) | (true, false, false) => " * ",
+                                        (true, true, true) | (true, false, false) => " * ", //" \u{f444} ",
                                         (true, false, true)
                                         | (true, true, false)
                                         | (false, _, _) => " - ",
@@ -655,9 +697,11 @@ impl ZellijPlugin for State {
                                     },
                                     R::Accent,
                                 )
-                                .colored(trim_mid(&pane.name, 30, 7), R::Default);
+                                .colored(trim_mid(&pane.name, 30, 7), R::Default)
+                                .space();
+                            // .colored("]", R::Accent);
 
-                            print_text_with_coordinates(pane_text.build(), 3, row_pos, None, None);
+                            print_text_with_coordinates(pane_text.build(), 2, row_pos, None, None);
                             row_pos += 1;
                         }
                     }
@@ -671,7 +715,7 @@ impl ZellijPlugin for State {
                         let heavy_mid = TextBuilder::start().colored('┃', R::Primary).build();
 
                         for row in start_row..row_pos {
-                            print_text_with_coordinates(heavy_mid.clone(), 0, row, None, None);
+                            // print_text_with_coordinates(heavy_mid.clone(), 0, row, None, None);
                         }
                     }
 
