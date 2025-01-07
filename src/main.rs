@@ -604,7 +604,9 @@ impl Address {
                     Address::Tab(index) | Address::Pane(index, _) => *index,
                 };
 
-                Address::Tab(((cursor_tab as i32 + delta) % tabs.len() as i32) as usize)
+                Address::Tab(
+                    (((cursor_tab + tabs.len()) as i32 + delta) % tabs.len() as i32) as usize,
+                )
             }
 
             VisualMode::ShowTabsAndPanes => {
@@ -762,6 +764,10 @@ impl ZellijPlugin for State {
 
     #[allow(unused_mut)]
     fn render(&mut self, rows: usize, cols: usize) {
+        if rows == 0 || cols == 0 {
+            return;
+        }
+
         use ColorRole as R;
         match self {
             State::Initializing(_) => (),
@@ -919,15 +925,14 @@ impl ZellijPlugin for State {
 
                 let fmt = |s| format!("{}", s);
                 let legend = TextBuilder::start()
-                    .text("H: ")
-                    .text("type ")
+                    .text("Type ")
                     .colored("letters", R::HotKey)
-                    .text(" to jump. ")
+                    .text(" to jump, ")
                     .colored(fmt(&sym.esc), R::HotKey)
                     .text(" close, ")
                     .colored(format!("{}{}", sym.up, sym.down), R::HotKey)
-                    .text(" or ")
-                    .colored(format!("{}", sym.tab), R::HotKey)
+                    // .text(" or ")
+                    // .colored(format!("{}", sym.tab), R::HotKey)
                     .text(" select, ")
                     .colored(fmt(&sym.enter), R::HotKey)
                     .text(" jump to selection,")
